@@ -219,11 +219,13 @@ class Model(SimulatorBase.Model):
             self.changedStartValue.
             The function returns a status flag and the next time event.
         '''
+
         self.interface.fmiInstantiate()
+
         if self.interface.activeFmiType == 'me':
             # Set start time
             self.interface.fmiSetTime(tStart)
-        
+
         # Set start values
         self._setDefaultStartValues()
         for name in self.changedStartValue.keys():
@@ -243,6 +245,7 @@ class Model(SimulatorBase.Model):
                 s4, eventInfo = self.interface.fmiNewDiscreteStates()
                 if eventInfo.terminateSimulation or not eventInfo.newDiscreteStatesNeeded or s4>1:
                     doLoop = False
+
             s5 = self.interface.fmiEnterContinuousTimeMode()
             if eventInfo.terminateSimulation:
                 status = max(status, 2)
@@ -490,17 +493,16 @@ class Model(SimulatorBase.Model):
                 # Write discrete Variables
                 writeResults('Discrete', solver.t)
 
-            return True 
+            return True
+
+
+
 
         def completed_step(solver):
             ''' Function that is called after each successful integrator step
                 Returns True,  if there was a step event
                         False, if there was no step event
             '''
-            
-            if self.isConnected is True:
-                self.interface.fmiCompletedIntegratorStep()  
-
             return False  # to be done for FMI2.0
             '''
             if self.interface.fmiCompletedIntegratorStep() == fmiTrue:
@@ -562,22 +564,22 @@ class Model(SimulatorBase.Model):
         if status > 1:
             print("Model initialization failed. fmiStatus = " + str(status))
             return
-        
+
         if 'Fixed' in self.integrationResults._mtsf.results.series:
             # Write parameter values
             writeResults('Fixed', Tstart)
+
 
         if self.interface.activeFmiType == 'me':
             if 'Discrete' in self.integrationResults._mtsf.results.series:
                 # Write discrete variables
                 writeResults('Discrete', Tstart)
-            
+
             # Retrieve initial state x
             if self.description.numberOfContinuousStates == 0:
                 x0 = numpy.zeros([1, ])
             else:
                 status, x0 = self.interface.fmiGetContinuousStates()
-            
             # x_nominal = numpy.array(self.interface.fmiGetNominalContinuousStates())
 
             # Prepare the solver
@@ -587,11 +589,13 @@ class Model(SimulatorBase.Model):
                 implicitSolver = True
                 # Define the solver object
                 simulator = AssimuloIda()
+
                 # Retrieve initial derivatives dx
                 if self.description.numberOfContinuousStates == 0:
                     dx0 = numpy.zeros([1, ])
                 else:
                     status, dx0 = self.interface.fmiGetDerivatives()
+
                 simulator.yd0 = dx0
             elif "Adams" in IntegrationMethod or "BDF" in IntegrationMethod:  # Use CVode
                 simulator = AssimuloCVode()
@@ -600,13 +604,13 @@ class Model(SimulatorBase.Model):
             else:
                 simulator = ExplicitEulerSolver()
                 simulator.completed_step = completed_step
-            
+
             # Set starting parameters common to all integrators here:
             simulator.t0 = Tstart
             simulator.y0 = x0
             simulator.atol = ErrorTolerance  # Default 1e-6
             simulator.rtol = ErrorTolerance  # Default 1e-6
-            
+
             # Set function pointers called by simulator
             simulator.rhs = right_hand_side
             simulator.handle_result = handle_result
@@ -622,8 +626,10 @@ class Model(SimulatorBase.Model):
                 simulator.state_events = state_events
                 simulator.time_events = time_events
 
+
             # Store information about next time event in solver
             simulator.nextTimeEvent = nextTimeEvent
+
 
             if hasattr(self, 'numberedModelName'):
                 print("Start integration of " + self.numberedModelName + " ... ")
@@ -641,6 +647,7 @@ class Model(SimulatorBase.Model):
 
         elif self.interface.activeFmiType == 'cs':
             # Do Co-Simulation for one single (self-containing) FMU
+
             if gridWidth is None:
                 gridWidth = (Tend-Tstart) / nIntervals
 
@@ -1067,6 +1074,7 @@ class ExplicitEulerSolver():
         '''
 
         # euler_basic.run_example()
+
         self.t_cur = Tstart
         self.y_cur = y0.copy()
         y_cur0 = y0.copy()
@@ -1126,10 +1134,10 @@ class ExplicitEulerSolver():
 
             # Inform about completed step
             self.completed_step(self)
-            
+
             def interpolateLinear(a1, b1, a2, b2, t):
                 return (b2 - b1) / (a2 - a1) * (t - a1) + b1
-            
+
             # Write output points until the current time
             while nextOutputPoint < self.t_cur:
                 y_Output = interpolateLinear(t_cur0, y_cur0, self.t_cur, self.y_cur, nextOutputPoint)

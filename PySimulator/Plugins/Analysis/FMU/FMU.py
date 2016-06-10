@@ -767,10 +767,8 @@ def prettify(elem):
     return reparsed.toprettyxml(indent="  ")
 
 def NewConnectME(model, gui):
-    #print "New connected FMU for Model Exchange is under development"
-    #pass
-    connectFMUsDialog = ConnectFMUsDialog(gui, 'me', None)
-    connectFMUsDialog.exec_()
+    print "New connected FMU for Model Exchange is under development"
+    pass
 
 def NewConnectCS(model, gui):
     connectFMUsDialog = ConnectFMUsDialog(gui, 'cs', None)

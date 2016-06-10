@@ -55,11 +55,8 @@ class FMIDescription:
         self.generationTool = None
         self.generationDateAndTime = None
         self.variableNamingConvention = 'flat'
-        #self.numberOfEventIndicators = None
-        ## not sure 
-        self.numberOfEventIndicators = 0
-        self.numberOfContinuousStates = 0
-        
+        self.numberOfEventIndicators = None
+
         for key, FMUInterfaceObj in self.FMUInterfaces.iteritems():
             description = FMUInterfaceObj.description
 
@@ -81,9 +78,8 @@ class FMIDescription:
             self.generationTool = description.generationTool
             self.generationDateAndTime = description.generationDateAndTime
             self.variableNamingConvention = description.variableNamingConvention
-            self.numberOfEventIndicators  += int(description.numberOfEventIndicators)
-            self.numberOfContinuousStates += description.numberOfContinuousStates
-            
+            self.numberOfEventIndicators = description.numberOfEventIndicators
+
             for scalarName, var in description.scalarVariables.iteritems():
                 scalarName = FMUInterfaceObj.instanceName + '.' + scalarName
                 var.valueReference = key + var.valueReference
